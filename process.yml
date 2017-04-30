@@ -1,5 +1,0 @@
-apps:
-  - script   : app.js
-    name: 'IMPORTAL'
-    instances: 1
-    max_memory_restart: 200M
