@@ -1,12 +1,12 @@
 /**
- * Created by mc185249 on 4/25/2017.
+ * Created by mc185249 on 4/29/2017.
  */
-let TypePayment = require("../Schema/formaPago");
+let typeAporte = require("../Schema/TipoAporte");
 
-function TypePaymentRepository() {
-    this.getTypePayment = ()=>{
+function typeContributeRepository() {
+    this.getTypeContribute = ()=>{
         return new Promise((resolve,reject)=>{
-            TypePayment.aggregate([
+            typeAporte.aggregate([
                 {$project:
                 {
                     _id:0,
@@ -15,7 +15,7 @@ function TypePaymentRepository() {
                 }
                 }
             ]).then((result)=>{
-                resolve({TypePayment:result})
+                resolve({typeContribute:result})
             })
                 .catch((err)=>{
                     reject(err)
@@ -24,4 +24,4 @@ function TypePaymentRepository() {
     }
 }
 
-module.exports = TypePaymentRepository;
+module.exports = typeContributeRepository;

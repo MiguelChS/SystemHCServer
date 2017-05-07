@@ -8,6 +8,8 @@ let Persona = require('../Services/PersonaServices');
 let Units = require('../Services/UnitsServices');
 let Venta = require('../Services/VentaService');
 let Aporte = require('../Services/AporteService');
+let Cost = require('../Services/CostoService');
+let Pago = require('../Services/PagoUnistServices');
 
 function Api(Router) {
 
@@ -109,6 +111,29 @@ function Api(Router) {
 
     Router.post('/newAporte',(req,res)=>{
         Aporte().newAporte(req.body)
+            .then(()=>{
+                res.status(200).json();
+            })
+            .catch((err)=>{
+                let mjsErr = "hay un problema en el servidor intente mas tarde";
+                res.status(400).json({err:mjsErr});
+            });
+    });
+
+    Router.post('/newCosto',(req,res)=>{
+        Cost().newCost(req.body)
+            .then(()=>{
+                res.status(200).json();
+            })
+            .catch((err)=>{
+                console.log(err);
+                let mjsErr = "hay un problema en el servidor intente mas tarde";
+                res.status(400).json({err:mjsErr});
+            });
+    });
+
+    Router.post('/newPago',(req,res)=>{
+        Pago().newPago(req.body)
             .then(()=>{
                 res.status(200).json();
             })

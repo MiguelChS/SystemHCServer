@@ -6,6 +6,6 @@ mongoose.Promise = Promise;
 let Schema = mongoose.Schema;
 let newSchema = new Schema({
     description:String
-},{collection:"TipoPago",versionKey: false});
-let TipoPago = mongoose.model('TipoPago',newSchema);
-module.exports = TipoPago;
+},{collection:"formaPago",versionKey: false});
+let formaPago = mongoose.model('formaPago',newSchema);
+module.exports = formaPago;

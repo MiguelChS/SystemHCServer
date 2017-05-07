@@ -4,7 +4,7 @@
 let Aporte = require('../Schema/AporteSocio');
 
 function AporteRepository() {
-    this.insertVenta =(form)=>{
+    this.insertAporte =(form)=>{
         return new Aporte(form).save();
     };
 }

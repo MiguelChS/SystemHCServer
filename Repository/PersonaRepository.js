@@ -16,6 +16,14 @@ function PersonaRepository() {
             }
             },
             {$unwind: '$TipoDocumento'},
+            {$lookup:
+            {
+                from:"VentaUnidad",
+                localField:"_id",
+                foreignField:"id_persona",
+                as:"unidades"
+            }
+            },
             {$project:
             {
                 _id:0,
@@ -25,7 +33,18 @@ function PersonaRepository() {
                 "phone":"$telefono",
                 "mail":1,
                 "numberDocument":"$numeroDocumento",
-                "typeDocument":"$TipoDocumento.descripcion"
+                "typeDocument":"$TipoDocumento.descripcion",
+                unidades:{
+                    $map:{
+                        input:"$unidades",
+                        as:"item",
+                        in:{
+                            "unidad":"$$item.id_unidad",
+                            "reserva":"$$item._id",
+                            "cantidadPago": "$$item.cantidadPago"
+                        }
+                    }
+                }
             }
             }
         ])
@@ -65,7 +84,6 @@ function PersonaRepository() {
             }
         ])
     };
-
     this.insert =(newPerson) =>{
         return new Persona(newPerson).save();
     };

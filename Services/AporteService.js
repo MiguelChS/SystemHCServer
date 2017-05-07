@@ -5,7 +5,7 @@ let repoAporte = require('../Repository/AporteSocioRepository');
 function AporteServices() {
     return {
         'newAporte':(formAporte)=>{
-            return new repoAporte().insertVenta({
+            return new repoAporte().insertAporte({
                 importe:formAporte.importe,
                 id_tipoMoneda:formAporte.idTipoMoneda,
                 id_persona:formAporte.idSocio,

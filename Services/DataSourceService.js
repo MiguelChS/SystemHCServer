@@ -8,6 +8,8 @@ let repoConditionPayment = require('../Repository/CondicionPagoRepository');
 let repoTypeMoney= require('../Repository/TipoMonedaRepository');
 let repoTypePayment = require('../Repository/TipoPagoRepository');
 let repoUnits = require('../Repository/UnidadesRepository');
+let repoTypeContribute = require('../Repository/TipoAporteRepository');
+let repoTypeCost = require('../Repository/TipoCostoRepository');
 function DataSourceServices() {
     return {
         'getAll':()=>{
@@ -16,10 +18,10 @@ function DataSourceServices() {
                 arrayPromise.push( new repoTypeDocument().getTypeDocument());
                 arrayPromise.push( new repoTypeOrientation().getTypeOrientation());
                 arrayPromise.push( new repoStateSale().getStateSale());
-                arrayPromise.push( new repoConditionPayment().getConditionPayment());
                 arrayPromise.push( new repoTypeMoney().getTypeMoney());
                 arrayPromise.push( new repoTypePayment().getTypePayment());
-                arrayPromise.push(new repoUnits().getUnits());
+                arrayPromise.push(new repoTypeContribute().getTypeContribute());
+                arrayPromise.push(new repoTypeCost().getTypeCost());
                 Promise.all(arrayPromise)
                     .then((value)=>{
                         var result = {};
