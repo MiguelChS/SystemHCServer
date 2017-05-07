@@ -10,6 +10,7 @@ let Venta = require('../Services/VentaService');
 let Aporte = require('../Services/AporteService');
 let Cost = require('../Services/CostoService');
 let Pago = require('../Services/PagoUnistServices');
+let Graphic = require('../Services/GraphicService');
 
 function Api(Router) {
 
@@ -136,6 +137,17 @@ function Api(Router) {
         Pago().newPago(req.body)
             .then(()=>{
                 res.status(200).json();
+            })
+            .catch((err)=>{
+                let mjsErr = "hay un problema en el servidor intente mas tarde";
+                res.status(400).json({err:mjsErr});
+            });
+    });
+
+    Router.get('/Caja',(req,res)=>{
+        Graphic().getGraficCaja()
+            .then((result)=>{
+                res.status(200).json(result);
             })
             .catch((err)=>{
                 let mjsErr = "hay un problema en el servidor intente mas tarde";
