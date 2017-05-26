@@ -8,6 +8,7 @@ function CostServices() {
                 id_formaPago:formCost.idTipoPago,
                 id_tipoCosto:formCost.idTipoCosto,
                 fecha:formCost.Fecha,
+                cambioDolar:formCost.cambioDolar,
                 id_usuario:formCost.idUsuario
             });
         }

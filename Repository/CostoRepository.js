@@ -11,13 +11,6 @@ function CostRepository() {
     this.getDetalleEgreso=()=>{
         return Cost.aggregate([
             {$lookup:{
-                from:"TipoMoneda",
-                localField:"id_tipoMoneda",
-                foreignField:"_id",
-                as:"Moneda"
-            }},
-            {$unwind: '$Moneda'},
-            {$lookup:{
                 from:"TipoCosto",
                 localField:"id_tipoCosto",
                 foreignField:"_id",
@@ -26,14 +19,12 @@ function CostRepository() {
             {$unwind: '$TipoCosto'},
             {$project:{
                 _id:0,
-                importe:1,
                 fecha:1,
-                "Moneda":"$Moneda.descripcion",
-                "idMoneda":"$Moneda._id",
-                "descripcion":"$TipoCosto.descripcion",
-                "ingreso":"0"
+                descripcion:"$TipoCosto.descripcion",
+                importe:1,
+                "ingreso":"0",
+                "Moneda":"$id_tipoMoneda"
             }},
-            {$sort:{fecha:1}}
         ])
     };
 
@@ -49,14 +40,14 @@ function CostRepository() {
                 "importe": { $multiply: [ "$importe", "$cambioDolar" ] }
             }},
             {$group:{
-                _id:{month: { $month: "$fecha" }, day: { $dayOfMonth: "$fecha" }, year: { $year: "$fecha" }},
-                total:{$sum:"$importe"},
+                _id:{month: { $month: "$fecha" }, year: { $year: "$fecha" }},
+                egreso:{$sum:"$importe"},
                 fecha:{$first:"$fecha"}
             }},
             {$project:{
                 _id:0,
                 fecha:1,
-                total:1
+                egreso:1
             }},
             {$sort:{fecha:1}}
         ])

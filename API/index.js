@@ -11,6 +11,7 @@ let Aporte = require('../Services/AporteService');
 let Cost = require('../Services/CostoService');
 let Pago = require('../Services/PagoUnistServices');
 let Graphic = require('../Services/GraphicService');
+let startProyecto = require("../Services/incioProyectoService");
 
 function Api(Router) {
 
@@ -53,6 +54,18 @@ function Api(Router) {
 
     });
 
+    Router.get('/getAllPerson',(req,res)=>{
+        Persona().getSocioAll()
+            .then((result)=>{
+                res.status(200).json(result);
+            })
+            .catch((err)=>{
+                let mjsErr = "hay un problema en el servidor intente mas tarde";
+                res.status(400).json({err:mjsErr});
+            });
+
+    });
+
     Router.post('/newUnidad',(req,res)=>{
         Units().newUnits(req.body)
             .then(()=>{
@@ -60,6 +73,7 @@ function Api(Router) {
             })
             .catch((err)=>{
                 let mjsErr = "hay un problema en el servidor intente mas tarde";
+                if(err.hasOwnProperty("code") && err.code == 11000){ mjsErr = "Esa unidad ya existe"}
                 res.status(400).json({err:mjsErr});
             });
     });
@@ -101,6 +115,28 @@ function Api(Router) {
 
     Router.get('/searchUnits',(req,res)=>{
         Units().getUnits()
+            .then((result)=>{
+                res.status(200).json(result);
+            })
+            .catch(()=>{
+                let mjsErr = "hay un problema en el servidor intente mas tarde";
+                res.status(400).json({err:mjsErr});
+            });
+    });
+
+    Router.get('/getAllUnidades',(req,res)=>{
+        Units().getAllUnidades()
+            .then((result)=>{
+                res.status(200).json(result);
+            })
+            .catch(()=>{
+                let mjsErr = "hay un problema en el servidor intente mas tarde";
+                res.status(400).json({err:mjsErr});
+            });
+    });
+
+    Router.post('/DeleteUnit',(req,res)=>{
+        Units().DeleteUnits(req.body.id)
             .then((result)=>{
                 res.status(200).json(result);
             })
@@ -155,8 +191,41 @@ function Api(Router) {
             });
     });
 
+    Router.get('/cashFlow',(req,res)=>{
+        Graphic().getCashFlow()
+            .then((result)=>{
+                res.status(200).json(result);
+            })
+            .catch((err)=>{
+                let mjsErr = "hay un problema en el servidor intente mas tarde";
+                res.status(400).json({err:mjsErr});
+            });
+    });
+
+    Router.post('/startProyecto',(req,res)=>{
+        startProyecto().dataIncioProject(req.body)
+            .then((result)=>{
+                res.status(200).json(result);
+            })
+            .catch((err)=>{
+                let mjsErr = "hay un problema en el servidor intente mas tarde";
+                res.status(400).json({err:mjsErr});
+            });
+    });
+
+    Router.get('/searchInicioProject',(req,res)=>{
+        startProyecto().getProject()
+            .then((result)=>{
+                res.status(200).json(result);
+            })
+            .catch((err)=>{
+                let mjsErr = "hay un problema en el servidor intente mas tarde";
+                res.status(400).json({err:mjsErr});
+            });
+    });
+
     return Router;
-    //algun comentario
+
 }
 
 module.exports = Api;

@@ -10,44 +10,31 @@ let repoRegistroPago = require("../Repository/RegistroPagoUnidadRepository");
 function PersonServices() {
     return {
         'newPersonWithUser':(formPerson)=>{
-            return new Promise((resolve,reject)=>{
-                //validar
-                let newPerson = {
-                    apellido:formPerson.name,
-                    nombre:formPerson.lastName,
-                    telefono:formPerson.phone,
-                    mail:formPerson.mail,
-                    id_TipoDocumento:formPerson.typeDocument,
-                    numeroDocumento:formPerson.numberDocument
-                };
-                let newUser = {
-                    username:formPerson.numberDocument,
-                    pass:formPerson.numberDocument,
-                    id_persona:"",
-                    admin:false
-                };
-                let newAporte = {
-                    importe:formPerson.importe,
-                    id_tipoMoneda:formPerson.typeMoney,
-                    id_persona:"",
-                    id_tipoAporte:"59054b182c5cd0dfd8cad3a8",
-                    fecha:moment.utc().format("YYYY-MM-DD"),
-                    id_usuario:formPerson.idUsuario
-                };
-                new repoPerson().insert(newPerson)
+            let newPerson = {
+                apellido:formPerson.name,
+                nombre:formPerson.lastName,
+                telefono:formPerson.phone,
+                mail:formPerson.mail,
+                id_TipoDocumento:formPerson.typeDocument,
+                numeroDocumento:formPerson.numberDocument
+            };
+            let newUser = {
+                username:formPerson.numberDocument,
+                pass:formPerson.numberDocument,
+                id_persona:"",
+                admin:false
+            };
+            if(formPerson.id){
+                return new repoPerson().update(formPerson.id,newPerson)
+            }else{
+                return new repoPerson().insert(newPerson)
                     .then((idPerson)=>{
                         newUser.id_persona = idPerson._id;
-                        newAporte.id_persona = idPerson._id;
                         return Promise.all([
-                            new repoUser().insert(newUser),
-                            new repoAporte().insertAporte(newAporte)
+                            new repoUser().insert(newUser)
                         ]);
                     })
-                    .then(()=>{resolve();})
-                    .catch((err)=>{
-                        reject(err);
-                    });
-            })
+            }
         },
 
         'newPersonOnly':(formOwner)=>{
@@ -150,6 +137,10 @@ function PersonServices() {
                     })
                 }
             }
+        },
+
+        'getSocioAll':()=>{
+            return new repoPerson().getAllSocio();
         }
     }
 }

@@ -3,6 +3,8 @@
  */
 let repoCost = require('../Repository/CostoRepository');
 let repoRegistro = require('../Repository/RegistroPagoUnidadRepository');
+let repoAporte = require('../Repository/AporteSocioRepository');
+let repoProjecto = require('../Repository/inicioProjectoRepository');
 let moment = require('moment');
 
 function CostServices() {
@@ -18,7 +20,10 @@ function CostServices() {
                 Promise.all(arrayPromise)
                     .then((result)=>{
                         let Detalle = [...result[0],...result[1]];
+                        //ordenamos
                         Detalle = Detalle.sort((a,b)=>{ return a.fecha - b.fecha });
+                        //hacemos las cuentas
+                        Detalle = operarDetalle(Detalle);
                         resolve({
                             tabla:Detalle,
                             Graphic:agrupar({
@@ -31,9 +36,102 @@ function CostServices() {
                         reject(err);
                     })
             })
+        },
+
+        'getCashFlow':()=>{
+            return new Promise((resolve,reject)=>{
+                let arrayPromise = [];
+                arrayPromise.push(new repoCost().getEgresoGrafic());
+                arrayPromise.push(new repoRegistro().getVentaGrafic());
+                arrayPromise.push(new repoAporte().getAporteInicial());
+                arrayPromise.push(new repoAporte().getAporteRefuerzo());
+                arrayPromise.push(new repoProjecto().get());
+                Promise.all(arrayPromise)
+                    .then((result)=>{
+                        let ventaCostoReal = agrupar({
+                            egreso:result[0],
+                            ingreso:result[1]
+                        });
+                        resolve(agruparCashFlow({ventaCostoReal,result}));
+                    })
+                    .catch((err)=>{
+                        reject(err);
+                    })
+            })
         }
 
     }
+}
+
+function agruparCashFlow(res) {
+    let AporteInicial = res.result[2];
+    let TiempoGrafico = res.result[4].DetalleControIngreso;
+    let AporteRefuerzo = res.result[3];
+    return TiempoGrafico.map((obj,index)=>{
+        let fecha = moment.utc(obj.fecha).format("YYYY-MM-DD");
+        let costIngreRegal = res.ventaCostoReal.find(x  => x.fecha == fecha);
+        let inversion = AporteRefuerzo.find(x => moment.utc(x.fecha).startOf('month').format("YYYY-MM-DD") == fecha);
+        if(index == 0){
+            inversion = AporteInicial;
+        }else{
+            inversion = inversion ? inversion.totalAporte : 0
+        }
+        return {
+            fecha:fecha,
+            costoEs:obj.costo,
+            ingresoEs:obj.ingreso,
+            costoR:costIngreRegal ? costIngreRegal.egreso : 0,
+            ingresoR:costIngreRegal ? costIngreRegal.ingreso : 0,
+            inversion: inversion
+        }
+    });
+
+}
+
+function operarDetalle(list) {
+    let lastCajaDolar = null;
+    let lastCajaPesos = null;
+    let tabla = list.map((obj,index)=>{
+        if(index == 0){
+            if(obj.Moneda.toString() == '58fecf3f3b2ef968436b332c'){
+                obj["icon"] = 'US$';
+                lastCajaDolar = parseInt(obj.ingreso,10) ? obj.importe : obj.importe * -1;
+                obj["CajaDolar"] =  lastCajaDolar;
+            }else{
+                obj["icon"] = '$';
+                lastCajaPesos = parseInt(obj.ingreso,10) ? obj.importe : obj.importe * -1;
+                obj["CajaPesos"] = lastCajaPesos;
+            }
+        }else{
+            if(obj.Moneda.toString() == '58fecf3f3b2ef968436b332c'){
+                if(lastCajaDolar != null){
+                    obj["icon"] = 'US$';
+                    lastCajaDolar = parseInt(obj.ingreso,10) ? lastCajaDolar + obj.importe : lastCajaDolar + obj.importe * -1;
+                    obj["CajaDolar"] = lastCajaDolar;
+                }else{
+                    obj["icon"] = 'US$';
+                    lastCajaDolar = parseInt(obj.ingreso,10) ? obj.importe : obj.importe * -1;
+                    obj["CajaDolar"] = lastCajaDolar;
+                }
+            }else{
+                if(lastCajaPesos != null){
+                    obj["icon"] = '$';
+                    lastCajaPesos = parseInt(obj.ingreso,10) ? lastCajaPesos + obj.importe : lastCajaPesos + obj.importe * -1;
+                    obj["CajaPesos"] = lastCajaPesos;
+                }else{
+                    obj["icon"] = '$';
+                    lastCajaPesos = parseInt(obj.ingreso,10) ? obj.importe : obj.importe * -1;
+                    obj["CajaPesos"] = lastCajaPesos;
+                }
+            }
+        }
+        return obj;
+    });
+    return {
+        tabla:tabla,
+        totalDolar:lastCajaDolar,
+        totalPesos:lastCajaPesos
+    };
 }
 
 function agrupar(res) {
@@ -41,8 +139,8 @@ function agrupar(res) {
     for(let i = 0; i < res.egreso.length ; i++){
         let egre = res.egreso;
         aux.push({
-            fecha: egre[i].fecha,
-            egreso:egre[i].total,
+            fecha: moment.utc(egre[i].fecha).startOf("month").format("YYYY-MM-DD"),
+            egreso:egre[i].egreso,
             ingreso:0
         });
     }
@@ -50,22 +148,22 @@ function agrupar(res) {
         let ingre = res.ingreso;
         let auxIndice = null;
         let resultFin = aux.find((obj,index)=>{
-            if(moment.utc(obj.fecha).format("YYYY-MM-DD") == moment.utc(ingre[i].fecha).format("YYYY-MM-DD")){
+            if(obj.fecha == moment.utc(ingre[i].fecha).startOf("month").format("YYYY-MM-DD")){
                 auxIndice = index;
                 return true;
             }
         });
         if(resultFin){
-            aux[auxIndice].ingreso = ingre[i].total;
+            aux[auxIndice].ingreso = ingre[i].ingreso;
         }else{
             aux.push({
-                fecha: ingre[i].fecha,
+                fecha: moment.utc(ingre[i].fecha).startOf("month").format("YYYY-MM-DD"),
                 egreso:0,
-                ingreso:ingre[i].total
+                ingreso:ingre[i].ingreso
             });
         }
     }
-    return aux.sort((a,b)=>{ return a.fecha - b.fecha });
+    return aux;
 }
 
 module.exports = CostServices;

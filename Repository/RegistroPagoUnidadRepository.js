@@ -26,28 +26,32 @@ function RegistroPagoRepository() {
                 id_venta:1
             }}
         ])
-    }
+    };
 
     this.getVentaGrafic =()=>{
         return RegistroPago.aggregate([
-            {$project:{
-                fecha:1,
-                importe:1,
-                "cambioDolar":{ $ifNull: [ "$cambioDolar",1]}
-            }},
-            {$project:{
-                fecha:1,
-                "importe": { $multiply: [ "$importe", "$cambioDolar" ] }
-            }},
             {$group:{
-                _id:{month: { $month: "$fecha" }, day: { $dayOfMonth: "$fecha" }, year: { $year: "$fecha" }},
-                total:{$sum:"$importe"},
+                _id:{month: { $month: "$fecha" }, year: { $year: "$fecha" },"Moneda":"$id_tipoMoneda"},
+                total:{ $sum: "$importe" },
                 fecha:{$first:"$fecha"}
             }},
             {$project:{
                 _id:0,
                 fecha:1,
-                total:1
+                total:{
+                    "total":"$total",
+                    "Moneda":"$_id.Moneda"
+                }
+            }},
+            {$group:{
+                _id:{month: { $month: "$fecha" }, year: { $year: "$fecha" }},
+                ingreso:{ $addToSet: "$total" },
+                fecha:{$first:"$fecha"}
+            }},
+            {$project:{
+                _id:0,
+                fecha:1,
+                ingreso:1
             }},
             {$sort:{fecha:1}}
         ])
@@ -55,13 +59,6 @@ function RegistroPagoRepository() {
 
     this.getDetalleIngreso =()=>{
         return RegistroPago.aggregate([
-            {$lookup:{
-                from:"TipoMoneda",
-                localField:"id_tipoMoneda",
-                foreignField:"_id",
-                as:"Moneda"
-            }},
-            {$unwind: '$Moneda'},
             {$lookup:{
                 from:"TipoPago",
                 localField:"id_tipoPago",
@@ -73,12 +70,10 @@ function RegistroPagoRepository() {
                 _id:0,
                 importe:1,
                 fecha:1,
-                "Moneda":"$Moneda.descripcion",
-                "idMoneda":"$Moneda._id",
+                "ingreso":"1",
                 "descripcion":"$TipoPago.descripcion",
-                "ingreso":"1"
-            }},
-            {$sort:{fecha:1}}
+                "Moneda":"$id_tipoMoneda"
+            }}
         ])
     };
 

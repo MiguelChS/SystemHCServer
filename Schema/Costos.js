@@ -10,6 +10,7 @@ let CostosSocioSchema = new Schema({
     id_formaPago:Schema.ObjectId,
     id_tipoCosto:Schema.ObjectId,
     fecha:Date,
+    cambioDolar:Number,
     id_usuario:Schema.ObjectId
 },{collection:"Costos",versionKey: false});
 let Costos = mongoose.model('Costos',CostosSocioSchema);
